@@ -1,127 +1,37 @@
 <!DOCTYPE html>
-<html lang="th">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Router Firmware Management Console</title>
+    <title>FSOCIETY DASHBOARD</title>
     <style>
-        /* สไตล์แบบเรียบหรู ดูเป็นทางการ (Admin Panel Style) */
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: #f4f7f9; 
-            margin: 0; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-        }
-        .container { 
-            background: white; 
-            padding: 40px; 
-            border-radius: 4px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
-            width: 400px; 
-            border-top: 6px solid #0056b3; /* แถบสีน้ำเงินดูเป็นทางการ */
-        }
-        .logo-area {
-            text-align: left;
-            margin-bottom: 25px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 15px;
-        }
-        h2 { 
-            color: #333; 
-            margin: 0; 
-            font-size: 18px; 
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        p { 
-            color: #555; 
-            font-size: 14px; 
-            line-height: 1.6; 
-        }
-        .status-msg { 
-            background-color: #fff4f4; 
-            border: 1px solid #f5c6cb; 
-            color: #721c24; 
-            padding: 12px; 
-            font-size: 13px; 
-            margin: 15px 0; 
-            border-radius: 3px;
-        }
-        .form-group {
-            margin-top: 20px;
-        }
-        label {
-            display: block;
-            font-size: 13px;
-            font-weight: bold;
-            color: #666;
-            margin-bottom: 8px;
-        }
-        input[type="password"] { 
-            width: 100%; 
-            padding: 12px; 
-            border: 1px solid #ccc; 
-            border-radius: 3px; 
-            box-sizing: border-box; 
-            font-size: 14px;
-        }
-        input[type="password"]:focus {
-            outline: none;
-            border-color: #0056b3;
-        }
-        button { 
-            background-color: #0056b3; 
-            color: white; 
-            border: none; 
-            padding: 12px; 
-            border-radius: 3px; 
-            cursor: pointer; 
-            width: 100%; 
-            font-weight: bold; 
-            margin-top: 15px;
-            transition: background 0.2s;
-        }
-        button:hover { 
-            background-color: #004494; 
-        }
-        .footer-info { 
-            margin-top: 25px; 
-            font-size: 11px; 
-            color: #999; 
-            text-align: center;
-        }
+        body { background:#000; color:#0f0; font-family:monospace; padding:20px; }
+        .box { border:1px solid #0f0; padding:10px; margin-bottom:10px; }
+        #log-box { color:#ff0; background:#111; height:80px; overflow:auto; padding:5px; border:1px solid #333; }
+        button { background:#000; color:#0f0; border:1px solid #0f0; padding:10px; cursor:pointer; }
     </style>
 </head>
 <body>
-
-    <div class="container">
-        <div class="logo-area">
-            <h2>Network Gateway Administrator</h2>
-        </div>
-        
-        <p><strong>ตรวจพบความผิดปกติของระบบ:</strong></p>
-        <p>การเชื่อมต่ออินเทอร์เน็ตถูกระงับเนื่องจากตรวจพบความพยายามเข้าถึงที่ไม่ได้ยืนยันตัวตน</p>
-        
-        <div class="status-msg">
-            กรุณายืนยันรหัสผ่านเครือข่าย (WPA2/WPA3 Key) เพื่อรีเซ็ตสถานะเร้าเตอร์และเปิดการใช้งานใหม่อีกครั้ง
-        </div>
-
-        <form action="/login" method="post">
-            <div class="form-group">
-                <label for="pwd">Wi-Fi Password / Admin Key:</label>
-                <input type="password" name="password" id="pwd" placeholder="Enter your password" required>
-            </div>
-            <button type="submit">Verify & Update Configuration</button>
-        </form>
-
-        <div class="footer-info">
-            Universal Firmware Version: 4.8.2-generic-release<br>
-            &copy; 2024-2026 Network Systems Inc. All Rights Reserved.
-        </div>
+    <div class="box">
+        WLAN0: <span id="stat">...</span>
+        <button onclick="fetch('/api/scan',{method:'POST'})">⚡ START SCAN</button>
     </div>
-
+    <div class="box">
+        <b>LOGS:</b>
+        <div id="log-box"></div>
+    </div>
+    <div class="box">
+        <b>WIFI TREEVIEW:</b>
+        <div id="tree">Waiting...</div>
+    </div>
+    <script>
+        setInterval(async () => {
+            const r = await fetch('/api/data');
+            const d = await r.json();
+            document.getElementById('stat').innerText = d.is_up ? "ONLINE" : "OFFLINE";
+            document.getElementById('log-box').innerHTML = d.logs.join('<br>');
+            let h = "";
+            d.networks.forEach(n => h += `<div>[CH ${n.ch}] ${n.ssid} (${n.bssid})</div>`);
+            if(h) document.getElementById('tree').innerHTML = h;
+        }, 2000);
+    </script>
 </body>
 </html>
